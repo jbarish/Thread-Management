@@ -52,7 +52,7 @@ int fn(){
   }
   return newN;
 }
- 
+
 int main(int argc, char *argv[]){
 	
 	int numPThreads;
@@ -96,13 +96,19 @@ int main(int argc, char *argv[]){
 		/*set up producer threads */
 		pn[i] = i;
 		pthread_create(&producerThreads[i], NULL, producer, &pn[i]);
+		
 	}
 	for(i = 0; i<numCThreads; i++){
 		/*set up consumer threads */
 		cn[i] = i;
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
-	
+	for(i = 0; i<numPThreads; i++){
+	  pthread_join(producerThreads[i], NULL);
+	}
+	for(i = 0; i<numCThreads; i++){
+	  pthread_join(consumerThreads[i], NULL);
+	}
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
 	pthread_mutex_destroy(&theMutex);
