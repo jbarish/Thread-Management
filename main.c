@@ -38,6 +38,19 @@ product makeProduct(){
 	 p->life = random()%1024;
 	 return p;
  }
+
+int fn(){
+  int cnt = 0;
+  int n1 = 0;
+  int n2 = 1;
+  int newN = 0;
+  while(cnt < 10){
+    newN = n1 + n2;
+    n1 = n2;
+    n2 = newN;
+  }
+  return newN;
+}
  
 int main(int argc, char *argv[]){
 	
@@ -74,7 +87,9 @@ int main(int argc, char *argv[]){
 	pn = (int*)malloc(sizeof(int)*numPThreads);
 	cn = (int*)malloc(sizeof(int)*numCThreads);
 	
-	/*TODO: Intitialize mutex & condition variables*/
+	pthread_mutex_init(&theMutex, 0);
+	pthread_cond_init(&condc, 0);
+	pthread_cond_init(&condp, 0);
 	
 	for(int i = 0; i<numPThreads; i++){
 		/*set up producer threads */
@@ -87,23 +102,26 @@ int main(int argc, char *argv[]){
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
 	
-	/*TODO: Destroy mutex and cond variables*/
+	pthread_cond_destroy(&condc);
+	pthread_cond_destory(&condp);
+	pthread_mutex_destroy(&theMute);
 	return 0;
 } 
 
-/*TODO: Add usleep functionality
-        Add printout of "Producer X has produced product Y
-*/
+/*TODO: Add printout of "Producer X has produced product Y*/
 void *producer(void *ptr){
 	while(true){
 		pthread_mutex_lock(&theMutex);
+		while(maxBufferSize && getNumElements()>=maxBufferSize)
+			pthread_cond_wait(&condp, &theMutex);
 		if(currTotal==productTotal){
 			pthread_mutex_unlock(&theMutex);
 			pthread_exit(0);
 		}
-		while(maxBufferSize && getNumElements()>=maxBufferSize)
-			pthread_cond_wait(&condp, &theMutex);
-		enqueue(makeProduct());
+		product tempProduct = makeProduct();
+		enqueue(tempProduct);
+		printf("%snsns", "Producer ", *((int*)(ptr)), " has produced product ", tempProduct->id, ".");
+	        usleep(100000);
 		currTotal++;
 		pthread_cond_signal(&condc);
 		pthread_mutex_unlock(&theMutex);
