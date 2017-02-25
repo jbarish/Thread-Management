@@ -15,6 +15,7 @@ int currTotal = 0; //total items produced so far
 int quantum; //given as CL input
 int seed; //given as CL input, for random number generation
 int maxBufferSize;//given as CL input
+int schedType;
 pthread_mutex_t theMutex;
 pthread_cond_t condc, condp;
 pthread_t* producerThreads;
@@ -65,15 +66,15 @@ int main(int argc, char *argv[]){
 	seed = atoi(argv[7]);
 	quantum=atoi(argv[6]);
 	productTotal= atoi(argv[3]);
-	maxBufferSize = atot(argv[4]);
-	
+	maxBufferSize = atoi(argv[4]);
+	schedType = atoi(argv[5]);
 	/*Set up consumer/producer thread lists based on input sizes*/
 	producerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numPThreads);
 	consumerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numCThreads);
 	pn = (int*)malloc(sizeof(int)*numPThreads);
 	cn = (int*)malloc(sizeof(int)*numCThreads);
 	
-	
+	/*TODO: Intitialize mutex & condition variables*/
 	
 	for(int i = 0; i<numPThreads; i++){
 		/*set up producer threads */
@@ -85,9 +86,14 @@ int main(int argc, char *argv[]){
 		cn[i] = i;
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
+	
+	/*TODO: Destroy mutex and cond variables*/
 	return 0;
 } 
 
+/*TODO: Add usleep functionality
+        Add printout of "Producer X has produced product Y
+*/
 void *producer(void *ptr){
 	while(true){
 		pthread_mutex_lock(&theMutex);
@@ -104,6 +110,7 @@ void *producer(void *ptr){
 	}
 }
 
+/*TODO: Implement*/
 void *consumer(void *ptr){
 	pthread_exit(0);
 }
