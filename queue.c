@@ -8,6 +8,15 @@ typedef struct node* Node;
 Node head = NULL;
 Node tail = NULL;
 
+/*
+struct productInfo{
+  int id;
+  struct timeval timeStamp;
+  int life;
+	
+ };
+typedef struct productInfo* product;
+*/
 
 /*
  *  [tail]                   [head]
@@ -44,7 +53,22 @@ product dequeueFirst(){
 	}
 	return NULL;
 }
+/*
+void printHelp(product nxt){
+  if(nxt->next != head){
+    printf("%i\n", (nxt->p)->id);
+    printHelp(nxt->next);
+  }
+}
 
+void printQueue(){
+  if(tail!=head){
+    printf("%i\n", (tail->p)->id);
+    printHelp(tail->next);
+  }
+  printf("%i\n", (head->p)->id);
+}
+*/
 /*add to tail*/
 void enqueue(product prod){
 	if(head!=NULL){
@@ -63,6 +87,7 @@ void enqueue(product prod){
 		head = new;
 		tail = new;
 	}
+	numElements++;
 }
 
 int getNumElements(){
