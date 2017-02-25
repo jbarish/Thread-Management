@@ -75,7 +75,8 @@ product peekAt(int index){
 		return NULL;
 	}
 	Node curr = head;
-	for(int i = 0; i< index;i++){
+	int i;
+	for(i = 0; i< index;i++){
 		curr = curr->prev;
 	}
 	return curr->p;
@@ -89,7 +90,8 @@ product removeAt(int index){
 		return dequeueFirst();
 	}
 	Node curr = head->prev;
-	for(int i = 1; i< index;i++){
+	int i;
+	for(i = 1; i< index;i++){
 		curr = curr->prev;
 	}
 	product temp = curr->p;

@@ -11,7 +11,7 @@ OBJ=$(addprefix $(SRCPATH), $(SRC:.c=.o))
 CC=gcc
 RM=rm -f
 INCPATH=includes
-CFLAGS+= -I $(INCPATH) -std=c99
+CFLAGS+= -I $(INCPATH) 
 
 
 all: $(OBJ)

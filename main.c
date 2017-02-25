@@ -27,6 +27,7 @@ int* cn;
 /*Forward Declarations */
 product makeProduct();
 void *producer(void *ptr);
+void *consumer(void *ptr);
 
 /*Create and return a new product*/
 product makeProduct(){
@@ -90,27 +91,27 @@ int main(int argc, char *argv[]){
 	pthread_mutex_init(&theMutex, 0);
 	pthread_cond_init(&condc, 0);
 	pthread_cond_init(&condp, 0);
-	
-	for(int i = 0; i<numPThreads; i++){
+	int i;
+	for(i = 0; i<numPThreads; i++){
 		/*set up producer threads */
 		pn[i] = i;
 		pthread_create(&producerThreads[i], NULL, producer, &pn[i]);
 	}
-	for(int i = 0; i<numCThreads; i++){
+	for(i = 0; i<numCThreads; i++){
 		/*set up consumer threads */
 		cn[i] = i;
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
 	
 	pthread_cond_destroy(&condc);
-	pthread_cond_destory(&condp);
-	pthread_mutex_destroy(&theMute);
+	pthread_cond_destroy(&condp);
+	pthread_mutex_destroy(&theMutex);
 	return 0;
 } 
 
 /*TODO: Add printout of "Producer X has produced product Y*/
 void *producer(void *ptr){
-	while(true){
+	while(1){
 		pthread_mutex_lock(&theMutex);
 		while(maxBufferSize && getNumElements()>=maxBufferSize)
 			pthread_cond_wait(&condp, &theMutex);
@@ -120,7 +121,7 @@ void *producer(void *ptr){
 		}
 		product tempProduct = makeProduct();
 		enqueue(tempProduct);
-		printf("%snsns", "Producer ", *((int*)(ptr)), " has produced product ", tempProduct->id, ".");
+		printf("Producer %i has produced product %i.\n", *((int*)(ptr)), tempProduct->id);
 	        usleep(100000);
 		currTotal++;
 		pthread_cond_signal(&condc);
@@ -130,5 +131,43 @@ void *producer(void *ptr){
 
 /*TODO: Implement*/
 void *consumer(void *ptr){
-	pthread_exit(0);
+  while(1){
+    pthread_mutex_lock(&theMutex);
+    while(getNumElements()<1)
+      pthread_cond_wait(&condc, &theMutex);
+    if(currTotal==productTotal && getNumElements()==0){
+      pthread_mutex_unlock(&theMutex);
+      pthread_exit(0);
+    }
+    if(schedType==0){ //FCFS
+      product temp = dequeueFirst();
+      int i;
+      for(i =0; i<temp->life; i++){
+	fn();
+      }
+      printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
+      free(temp);
+    }else{ //Round-Robin
+      product temp = dequeueFirst();
+      int life = temp->life;
+      int maxIt = life>quantum ? quantum : life;
+      int i;
+      for(i = 0; i<maxIt; i++){
+	fn();
+
+      }
+      int newLife = life-quantum;
+      if(newLife>0){
+	temp->life = newLife;
+	enqueue(temp);
+      }else{
+	printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
+	free(temp);
+      }
+      usleep(100000);	
+    }
+    pthread_cond_signal(&condp);
+    pthread_mutex_unlock(&theMutex);
+  }
+  pthread_exit(0);
 }
