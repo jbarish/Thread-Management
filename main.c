@@ -49,12 +49,13 @@ int fn(){
     newN = n1 + n2;
     n1 = n2;
     n2 = newN;
+    cnt++;
   }
   return newN;
 }
 
 int main(int argc, char *argv[]){
-	
+  /*
 	int numPThreads;
 	int numCThreads;
 
@@ -69,12 +70,12 @@ int main(int argc, char *argv[]){
 	        for Round-Robin
 	 *  P6: Value of quantum used for round-robin scheduling
 	 *  P7: Seed for random number generator
-	 */
+	 *
 	if(argc < 8 ){
 		perror("Must provide 7 arguments"), exit(1);
 	}
 	
-	/*Extract from args*/
+	/*Extract from args*
 	numPThreads = atoi(argv[1]);
 	numCThreads = atoi(argv[2]);
 	seed = atoi(argv[7]);
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]){
 	productTotal= atoi(argv[3]);
 	maxBufferSize = atoi(argv[4]);
 	schedType = atoi(argv[5]);
-	/*Set up consumer/producer thread lists based on input sizes*/
+	/*Set up consumer/producer thread lists based on input sizes*
 	producerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numPThreads);
 	consumerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numCThreads);
 	pn = (int*)malloc(sizeof(int)*numPThreads);
@@ -93,13 +94,13 @@ int main(int argc, char *argv[]){
 	pthread_cond_init(&condp, 0);
 	int i;
 	for(i = 0; i<numPThreads; i++){
-		/*set up producer threads */
+		/*set up producer threads *
 		pn[i] = i;
 		pthread_create(&producerThreads[i], NULL, producer, &pn[i]);
 		
 	}
 	for(i = 0; i<numCThreads; i++){
-		/*set up consumer threads */
+		/*set up consumer threads *
 		cn[i] = i;
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
@@ -111,8 +112,10 @@ int main(int argc, char *argv[]){
 	}
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
-	pthread_mutex_destroy(&theMutex);
-	return 0;
+	pthread_mutex_destroy(&theMutex);*/
+  int num = fn();
+  printf("%i\n", num);
+    return 0;
 } 
 
 /*TODO: Add printout of "Producer X has produced product Y*/
