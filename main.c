@@ -133,7 +133,7 @@ void *producer(void *ptr){
 		}
 		product tempProduct = makeProduct();
 		enqueue(tempProduct);
-		printf("Producer %i has produced product %i, which has lifespan of .\n", *((int*)(ptr)), tempProduct->id, tempProduct->life);
+		printf("Producer %i has produced product %i, which has lifespan of %i.\n", *((int*)(ptr)), tempProduct->id, tempProduct->life);
 		currTotal++;
 	    
 		currTotal++;
