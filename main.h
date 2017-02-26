@@ -6,8 +6,15 @@
 #include <sys/time.h>
 #include <string.h>
 
-struct productInfo;
+struct productInfo{
+  int id;
+  struct timeval timeStamp;
+  int life;
+	
+ };
 typedef struct productInfo* product;
 
-
+product dequeueFirst();
+void enqueue(product prod);
+int getNumElements();
 #endif
