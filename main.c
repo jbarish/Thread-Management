@@ -118,12 +118,17 @@ int main(int argc, char *argv[]){
 
 /*TODO: Add printout of "Producer X has produced product Y*/
 void *producer(void *ptr){
+		printf("Hello! I am producer %i.\n", *((int*)ptr));
 	while(1){
 		pthread_mutex_lock(&theMutex);
 		while(maxBufferSize && getNumElements()>=maxBufferSize)
 			pthread_cond_wait(&condp, &theMutex);
 		if(currTotal==productTotal){
+			//pthread_cond_signal(&condc);
+			printf("Producer %i is exiting.\n", *((int*)ptr));
+			pthread_cond_signal(&condc);
 			pthread_mutex_unlock(&theMutex);
+			
 			pthread_exit(0);
 		}
 		product tempProduct = makeProduct();
@@ -138,12 +143,17 @@ void *producer(void *ptr){
 
 /*TODO: Implement*/
 void *consumer(void *ptr){
+	printf("Hello! I am consumer %i.\n", *((int*)ptr));
   while(1){
     pthread_mutex_lock(&theMutex);
-    while(getNumElements()<1)
+	
+    while(currTotal!=productTotal && getNumElements()<1)
       pthread_cond_wait(&condc, &theMutex);
     if(currTotal==productTotal && getNumElements()==0){
-      pthread_mutex_unlock(&theMutex);
+		pthread_cond_signal(&condp);    
+		printf("consumer %i is exiting.\n", *((int*)ptr));
+		pthread_mutex_unlock(&theMutex);
+
       pthread_exit(0);
     }
     if(schedType==0){ //FCFS
