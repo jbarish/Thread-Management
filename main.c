@@ -35,8 +35,8 @@ product makeProduct(){
 	 gettimeofday(&(p->timeStamp),NULL);
 	 p->id = id;
 	 id++;
-	 srandom(seed);
-	 p->life = random()%1024;
+
+	 p->life = rand()%1024;
 	 return p;
  }
 
@@ -92,6 +92,7 @@ int main(int argc, char *argv[]){
 	pthread_mutex_init(&theMutex, 0);
 	pthread_cond_init(&condc, 0);
 	pthread_cond_init(&condp, 0);
+	srand(seed);
 	int i;
 	for(i = 0; i<numPThreads; i++){
 	  /*set up producer threads */
