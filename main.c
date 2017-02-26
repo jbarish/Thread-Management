@@ -173,16 +173,18 @@ void *consumer(void *ptr){
       int maxIt = life>quantum ? quantum : life;
       int i;
       for(i = 0; i<maxIt; i++){
-	fn();
+		fn();
 
       }
       int newLife = life-quantum;
       if(newLife>0){
-	temp->life = newLife;
-	enqueue(temp);
+		printf("Consumer %i partially consumed consumed product %i. Took %i. New timespan of %i.\n", *((int*)ptr),temp->id,maxIt, temp->life);
+
+		temp->life = newLife;
+		enqueue(temp);
       }else{
-	printf("Consumer %i consumed product %i with a timespan of %i.\n", *((int*)ptr),temp->id, temp->life);
-	free(temp);
+		printf("Consumer %i consumed product %i with a timespan of %i.\n", *((int*)ptr),temp->id, temp->life);
+		free(temp);
       }
       	
     }
