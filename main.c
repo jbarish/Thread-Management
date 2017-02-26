@@ -134,10 +134,10 @@ void *producer(void *ptr){
 		product tempProduct = makeProduct();
 		enqueue(tempProduct);
 		printf("Producer %i has produced product %i.\n", *((int*)(ptr)), tempProduct->id);
-	        usleep(100000);
 		currTotal++;
 		pthread_cond_signal(&condc);
 		pthread_mutex_unlock(&theMutex);
+		usleep(100000);
 	}
 }
 
@@ -181,10 +181,9 @@ void *consumer(void *ptr){
 	printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
 	free(temp);
       }
-      usleep(100000);	
     }
     pthread_cond_signal(&condp);
     pthread_mutex_unlock(&theMutex);
+    usleep(100000);	
   }
-  pthread_exit(0);
 }
