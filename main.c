@@ -41,7 +41,7 @@ product makeProduct(){
  }
 
 int fn(){
-  int cnt = 0;
+  int cnt = 2;
   int n1 = 0;
   int n2 = 1;
   int newN = 0;
