@@ -135,9 +135,10 @@ void *producer(void *ptr){
 		enqueue(tempProduct);
 		printf("Producer %i has produced product %i.\n", *((int*)(ptr)), tempProduct->id);
 		currTotal++;
+	    usleep(100000);
+		currTotal++;
 		pthread_cond_signal(&condc);
 		pthread_mutex_unlock(&theMutex);
-		usleep(100000);
 	}
 }
 
@@ -178,12 +179,13 @@ void *consumer(void *ptr){
 	temp->life = newLife;
 	enqueue(temp);
       }else{
-	printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
+	printf("Consumer %i consumed product %i with a timespan of %i.\n", *((int*)ptr),temp->id, temp->life);
 	free(temp);
       }
+      usleep(100000);	
     }
     pthread_cond_signal(&condp);
     pthread_mutex_unlock(&theMutex);
-    usleep(100000);	
   }
+  pthread_exit(0);
 }
