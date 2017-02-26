@@ -1,13 +1,13 @@
 #include "main.h"
 
-struct productInfo{
+/*struct productInfo{
   int id;
   struct timeval timeStamp;
   int life;
 	
  };
 typedef struct productInfo* product;
-
+*/
 /*Globals */
 int id = 0; // unique id for each product
 int productTotal; // total number of products to produce, given as CL input
