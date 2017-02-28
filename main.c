@@ -12,6 +12,7 @@ typedef struct productInfo* product;
 int id = 0; // unique id for each product
 int productTotal; // total number of products to produce, given as CL input
 int currTotal = 0; //total items produced so far
+int consumeTotal = 0;
 int quantum; //given as CL input
 int seed; //given as CL input, for random number generation
 int maxBufferSize;//given as CL input
@@ -40,6 +41,7 @@ product makeProduct(){
 	 return p;
  }
 
+ /*Calculate the 10th fibbonacci number iteratively */
 int fn(){
   int cnt = 2;
   int n1 = 0;
@@ -74,6 +76,9 @@ int main(int argc, char *argv[]){
 	if(argc < 8 ){
 		perror("Must provide 7 arguments"), exit(1);
 	}
+	if(atoi(argv[5])&& atoi(argv[6])<=0){
+		perror("Must provide valid quantum"), exit(1);
+	}
 	
 	/*Extract from args*/
 	numPThreads = atoi(argv[1]);
@@ -83,16 +88,22 @@ int main(int argc, char *argv[]){
 	productTotal= atoi(argv[3]);
 	maxBufferSize = atoi(argv[4]);
 	schedType = atoi(argv[5]);
+	
 	/*Set up consumer/producer thread lists based on input sizes*/
 	producerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numPThreads);
 	consumerThreads = (pthread_t*)malloc(sizeof(pthread_t)*numCThreads);
 	pn = (int*)malloc(sizeof(int)*numPThreads);
 	cn = (int*)malloc(sizeof(int)*numCThreads);
 	
+	/*initialize mutexes and condition variables*/
 	pthread_mutex_init(&theMutex, 0);
 	pthread_cond_init(&condc, 0);
 	pthread_cond_init(&condp, 0);
+	
+	/*Set seed for random number generator*/
 	srand(seed);
+	
+	/*create threads*/
 	int i;
 	for(i = 0; i<numPThreads; i++){
 	  /*set up producer threads */
@@ -105,51 +116,71 @@ int main(int argc, char *argv[]){
 		cn[i] = i;
 		pthread_create(&consumerThreads[i], NULL, consumer, &cn[i]);
 	}
+	
+	/*wait for all threads to exit*/
 	for(i = 0; i<numPThreads; i++){
 	  pthread_join(producerThreads[i], NULL);
 	}
 	for(i = 0; i<numCThreads; i++){
 	  pthread_join(consumerThreads[i], NULL);
 	}
+	
+	/*destroy condition variables and mutexes*/
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
 	pthread_mutex_destroy(&theMutex);
     return 0;
 } 
 
-/*TODO: Add printout of "Producer X has produced product Y*/
+/*Producer thread, that produces an item, and places it into a queue. Sleeps 100ms after producing*/
 void *producer(void *ptr){
 		printf("Hello! I am producer %i.\n", *((int*)ptr));
 	while(1){
+		
+		/*obtain lock to protect the queue*/
 		pthread_mutex_lock(&theMutex);
+		
+		/*if buffer is full (and not infinite), wait*/
 		while(maxBufferSize && getNumElements()>=maxBufferSize)
 			pthread_cond_wait(&condp, &theMutex);
+		
+		/*thread exit criteria*/
 		if(currTotal==productTotal){
-			//pthread_cond_signal(&condc);
 			printf("Producer %i is exiting.\n", *((int*)ptr));
 			pthread_cond_signal(&condc);
 			pthread_mutex_unlock(&theMutex);
 			
 			pthread_exit(0);
 		}
+		
+		/*make and enqueue a new product*/
 		product tempProduct = makeProduct();
 		enqueue(tempProduct);
 		printf("Producer %i has produced product %i, which has lifespan of %i.\n", *((int*)(ptr)), tempProduct->id, tempProduct->life);
 		currTotal++;
+		
+		/*signal consumers that there is an item to consume, and unlock the mutex*/
 		pthread_cond_signal(&condc);
 		pthread_mutex_unlock(&theMutex);
 		usleep(100000);
 	}
 }
 
-/*TODO: Implement*/
+/*Consumer thread, that consumes an item, removes it from a queue. Sleeps 100ms after consuming
+ * Will either do round-robin scheduling, or FCFS scheduling.
+ */
 void *consumer(void *ptr){
 	printf("Hello! I am consumer %i.\n", *((int*)ptr));
   while(1){
+	  
+	  /*obtain lock over queue*/
     pthread_mutex_lock(&theMutex);
 	
+	/*if there is no products to consume, sleep*/
     while(currTotal!=productTotal && getNumElements()<1)
       pthread_cond_wait(&condc, &theMutex);
+  
+	/* exit criteria, if all products are consumed*/
     if(currTotal==productTotal && getNumElements()==0){
 		pthread_cond_signal(&condp);    
 		printf("consumer %i is exiting.\n", *((int*)ptr));
@@ -157,37 +188,51 @@ void *consumer(void *ptr){
 
       pthread_exit(0);
     }
+	
     if(schedType==0){ //FCFS
-      product temp = dequeueFirst();
-      int i;
-      for(i =0; i<temp->life; i++){
-	fn();
-      }
+	
+		/*remove a product from the queue*/
+		product temp = dequeueFirst();
+		consumeTotal++;
+		/*wakeup producers, and unlock*/
+		pthread_cond_signal(&condp);
+		pthread_mutex_unlock(&theMutex);
+		/*consume the product entirely*/
+		int i;
+		for(i =0; i<temp->life; i++){
+			fn();
+		}
       printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
       free(temp);
     }else{ //Round-Robin
       product temp = dequeueFirst();
       int life = temp->life;
+	  
+	  /*consume the product up till either the max quantum, or the life of the product, whichever is less*/
       int maxIt = life>quantum ? quantum : life;
       int i;
       for(i = 0; i<maxIt; i++){
 		fn();
-
       }
       int newLife = life-quantum;
+	  
+	  
       if(newLife>0){
+		/*if there is still stuff left after consuming for the length of the quantum, readd it to the queue*/
 		printf("Consumer %i partially consumed consumed product %i. Took %i. New timespan of %i.\n", *((int*)ptr),temp->id,maxIt, temp->life);
 
 		temp->life = newLife;
 		enqueue(temp);
       }else{
+		  /*otherwise, it i done consuming*/
 		printf("Consumer %i consumed product %i with a timespan of %i.\n", *((int*)ptr),temp->id, temp->life);
 		free(temp);
       }
-      	
+      	/*unlock and signal*/
+		pthread_cond_signal(&condp);
+		pthread_mutex_unlock(&theMutex);
     }
-    pthread_cond_signal(&condp);
-    pthread_mutex_unlock(&theMutex);
+    
 	usleep(100000);
   }
  
