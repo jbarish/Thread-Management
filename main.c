@@ -23,6 +23,12 @@ pthread_t* producerThreads;
 pthread_t* consumerThreads;
 int* pn;
 int* cn;
+long turnTime = 0;
+long waitTime = 0;
+long minWaitTime = 10000001;
+long maxWaitTime = 0;
+long minTurnTime = 10000001;
+long maxTurnTime = 0;
 
 
 /*Forward Declarations */
@@ -124,6 +130,9 @@ int main(int argc, char *argv[]){
 	for(i = 0; i<numCThreads; i++){
 	  pthread_join(consumerThreads[i], NULL);
 	}
+	printf("Minimum Turnaround Time = %ld Microseconds.\n", minTurnTime);
+	printf("Maximum Turnaround Time = %ld Microseconds.\n", maxTurnTime);
+	printf("Average Turnaround Time = %f Microseconds.\n", ((double)turnTime / productTotal));
 	
 	/*destroy condition variables and mutexes*/
 	pthread_cond_destroy(&condc);
@@ -191,49 +200,69 @@ void *consumer(void *ptr){
 	
     if(schedType==0){ //FCFS
 	
-		/*remove a product from the queue*/
-		product temp = dequeueFirst();
-		consumeTotal++;
-		/*wakeup producers, and unlock*/
-		pthread_cond_signal(&condp);
-		pthread_mutex_unlock(&theMutex);
-		/*consume the product entirely*/
-		int i;
-		for(i =0; i<temp->life; i++){
-			fn();
-		}
+      /*remove a product from the queue*/
+      product temp = dequeueFirst();
+      consumeTotal++;
+      /*consume the product entirely*/
+      int i;
+      for(i =0; i<temp->life; i++){
+	fn();
+      }
+      struct timeval end;
+      gettimeofday(&end, NULL);
+      long secs_used = (end.tv_sec - temp->timeStamp.tv_sec);
+      long micros_used = ((secs_used*1000000) + end.tv_usec) - (temp->timeStamp.tv_usec);
+      if(micros_used > maxTurnTime){
+	maxTurnTime = micros_used;
+      }else if(micros_used < minTurnTime){
+	minTurnTime = micros_used;
+      }
+      turnTime += micros_used;
       printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
       free(temp);
+      /*wakeup producers, and unlock*/
+      pthread_cond_signal(&condp);
+      pthread_mutex_unlock(&theMutex);
     }else{ //Round-Robin
       product temp = dequeueFirst();
       int life = temp->life;
-	  
-	  /*consume the product up till either the max quantum, or the life of the product, whichever is less*/
+      
+      /*consume the product up till either the max quantum, or the life of the product, whichever is less*/
       int maxIt = life>quantum ? quantum : life;
       int i;
       for(i = 0; i<maxIt; i++){
-		fn();
+	fn();
       }
       int newLife = life-quantum;
-	  
-	  
+      
+      
       if(newLife>0){
-		/*if there is still stuff left after consuming for the length of the quantum, readd it to the queue*/
-		printf("Consumer %i partially consumed consumed product %i. Took %i. New timespan of %i.\n", *((int*)ptr),temp->id,maxIt, temp->life);
-
-		temp->life = newLife;
-		enqueue(temp);
+	/*if there is still stuff left after consuming for the length of the quantum, readd it to the queue*/
+	/*printf("Consumer %i partially consumed consumed product %i. Took %i. New timespan of %i.\n", *((int*)ptr),temp->id,maxIt, temp->life);*/
+	
+	temp->life = newLife;
+	enqueue(temp);
       }else{
-		  /*otherwise, it i done consuming*/
-		printf("Consumer %i consumed product %i with a timespan of %i.\n", *((int*)ptr),temp->id, temp->life);
-		free(temp);
+	/*otherwise, it i done consuming*/
+	struct timeval end;
+	gettimeofday(&end, NULL);
+	long secs_used = (end.tv_sec - temp->timeStamp.tv_sec);
+	long micros_used = ((secs_used*1000000) + end.tv_usec) - (temp->timeStamp.tv_usec);
+	if(micros_used > maxTurnTime){
+	  maxTurnTime = micros_used;
+	}else if(micros_used < minTurnTime){
+	  minTurnTime = micros_used;
+	}
+	turnTime += micros_used;
+	printf("Consumer %i consumed product %i.\n", *((int*)ptr),temp->id);
+	free(temp);
       }
-      	/*unlock and signal*/
-		pthread_cond_signal(&condp);
-		pthread_mutex_unlock(&theMutex);
+      /*unlock and signal*/
+      pthread_cond_signal(&condp);
+      pthread_mutex_unlock(&theMutex);
     }
     
-	usleep(100000);
+    usleep(100000);
   }
- 
+  
 }
