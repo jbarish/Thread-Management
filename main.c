@@ -144,7 +144,7 @@ int main(int argc, char *argv[]){
 
 	float pThroughput = productTotal/((float)pThrough/60000000) ;
 	float cThroughput = productTotal/((float)cThrough/60000000) ;
-	printf("\n------------------Runtime Information-------------------\n", prog_micros_used);
+	printf("\n------------------Runtime Information-------------------\n");
 	printf("Total Processing time = %ld Microseconds.\n", prog_micros_used);
 	
 	printf("\nMinimum Turnaround Time = %ld Microseconds.\n", minTurnTime);
