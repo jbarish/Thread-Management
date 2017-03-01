@@ -15,6 +15,7 @@ struct productInfo{
  };
 typedef struct productInfo* product;
 
+/*methods from queue that main needs */
 product dequeueFirst();
 void enqueue(product prod);
 int getNumElements();
