@@ -10,6 +10,7 @@ struct productInfo{
   int id;
   struct timeval timeStamp;
   int life;
+  long consumeTime;
 	
  };
 typedef struct productInfo* product;
