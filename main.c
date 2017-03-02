@@ -87,13 +87,19 @@ int main(int argc, char *argv[]){
 	 *  P7: Seed for random number generator
 	 */
 	if(argc < 8 ){
-		perror("Must provide 7 arguments"), exit(1);
+	  perror("Must provide 7 arguments"), exit(1);
 	}
 	if(atoi(argv[5])&& atoi(argv[6])<=0){
-		perror("Must provide valid quantum"), exit(1);
+	  perror("Must provide valid quantum"), exit(1);
 	}
 	if(atoi(argv[4])<0){
-		perror("Must provide valid queue size of >=0"), exit(1);
+	  perror("Must provide valid queue size of >=0"), exit(1);
+	}
+	if(atoi(argv[0]) <= 0){
+	  perror("Must provide valid number of producers >= 1"), exit();
+	}
+	if(atoi(argv[1]) <= 0){
+	  perror("Must provide valid number of consumers >= 1"), exit();
 	}
 	
 	/*Extract from args*/
