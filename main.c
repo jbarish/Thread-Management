@@ -95,10 +95,10 @@ int main(int argc, char *argv[]){
 	if(atoi(argv[4])<0){
 	  perror("Must provide valid queue size of >=0"), exit(1);
 	}
-	if(atoi(argv[0]) <= 0){
+	if(atoi(argv[1]) <= 0){
 	  perror("Must provide valid number of producers >= 1"), exit(1);
 	}
-	if(atoi(argv[1]) <= 0){
+	if(atoi(argv[2]) <= 0){
 	  perror("Must provide valid number of consumers >= 1"), exit(1);
 	}
 	
