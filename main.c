@@ -96,10 +96,10 @@ int main(int argc, char *argv[]){
 	  perror("Must provide valid queue size of >=0"), exit(1);
 	}
 	if(atoi(argv[0]) <= 0){
-	  perror("Must provide valid number of producers >= 1"), exit();
+	  perror("Must provide valid number of producers >= 1"), exit(1);
 	}
 	if(atoi(argv[1]) <= 0){
-	  perror("Must provide valid number of consumers >= 1"), exit();
+	  perror("Must provide valid number of consumers >= 1"), exit(1);
 	}
 	
 	/*Extract from args*/
@@ -173,6 +173,8 @@ int main(int argc, char *argv[]){
 	pthread_cond_destroy(&condc);
 	pthread_cond_destroy(&condp);
 	pthread_mutex_destroy(&theMutex);
+	free(pn);
+	free(cn);
     return 0;
 } 
 
